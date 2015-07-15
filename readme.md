@@ -27,9 +27,7 @@ assert.equal(genderCursor(), 'male');
  
 // 通过调用cursor的update方法，更新其对应值
 nameCursor.update('john');
- 
-// 如果只想更新其部分值，可传入回调。
-// 回调的参数是cursor对应的值，应当返回一个与之相对应拷贝。
+// 如果只想更新其部分值，可传入路径。
 profileCursor.update('gender', 'female'); 
 
 // 能过调用cursor函数获得已经更新的值
