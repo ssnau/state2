@@ -19,7 +19,7 @@ var state = new State({
 // 通过cursor方法得到cursor
 var nameCursor = state.cursor('name');
 var profileCursor = state.cursor('profile');
-var genderCursor = state.cursor('profile.gender']);
+var genderCursor = state.cursor('profile.gender');
  
 // 通过调用cursor函数得到cursor对应的值
 assert.equal(nameCursor(), 'jack');

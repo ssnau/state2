@@ -94,6 +94,37 @@ describe('cursor should work', function() {
         assert.equal(cursor(), 'open-the-door');
     });
 
+    it('example', function () {
+        // 任意一个cursor导致的更新都将让state内部的指针指向新的状态
+        // 且之后的cursor返回值都是基于这个新的状态的路径的值
+        var state = new State({
+               name: 'jack',
+               profile: {
+                       gender: 'male'
+                   }
+        });
+         
+        // 通过cursor方法得到cursor
+        var nameCursor = state.cursor('name');
+        var profileCursor = state.cursor('profile');
+        var genderCursor = state.cursor('profile.gender');
+         
+        // 通过调用cursor函数得到cursor对应的值
+        assert.equal(nameCursor(), 'jack');
+        assert.equal(genderCursor(), 'male');
+         
+        // 通过调用cursor的update方法，更新其对应值
+        nameCursor.update('john');
+         
+        // 如果只想更新其部分值，可传入回调。
+        // 回调的参数是cursor对应的值，应当返回一个与之相对应拷贝。
+        profileCursor.update('gender', 'female'); 
+
+        // 能过调用cursor函数获得已经更新的值
+        assert.equal(nameCursor(), 'john');
+        assert.equal(genderCursor(), 'female');
+    });
+
     it('update', function () {
         var state = new State();
         state.load({
