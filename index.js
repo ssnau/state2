@@ -60,7 +60,7 @@ State.prototype.cursor = function (path) {
   // raw means if we should convert the value into immutableJS.
   ret.update = function (subpath, value) {
     if (arguments.length === 1) { value = subpath; subpath = []; }
-    if (typeof subpath === 'string') subpath = subpath.split(',');
+    if (typeof subpath === 'string') subpath = subpath.split('.');
     if (updateIn(me._state, path.concat(subpath), value)) {
         me.emit('change', this._state);
     }

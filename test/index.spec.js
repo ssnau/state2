@@ -19,7 +19,7 @@ describe('cursor should work', function() {
         assert.equal(cursor().age, 10);
     });
 
-    it('cursor can be update by non function', function () {
+    it('cursor can be update', function () {
         var state = new State();
         state.load({
             profile: {
@@ -74,6 +74,52 @@ describe('cursor should work', function() {
         assert.equal(nameCursor(), void 0);
         nameCursor.update('taylor');
         assert.equal(nameCursor(), 'taylor');
+    });
+
+    it('test array|string as path', function () {
+        var state = new State({
+            profile: {
+                name: 'jack'
+            },
+            "big.secret": {
+                key: "open-the-door"
+            }
+        });
+        // path 可以是以点分隔的路径
+        var cursor = state.cursor('profile.name');
+        assert.equal(cursor(), 'jack');
+
+        // path可以是数组
+        var cursor = state.cursor(['big.secret', 'key']);
+        assert.equal(cursor(), 'open-the-door');
+    });
+
+    it('update', function () {
+        var state = new State();
+        state.load({
+            profile: {
+                name: "jack",
+                age: 10,
+                parent: {
+                    mother: {
+                        name: 'nina'
+                    },
+                    father: {
+                        name: 'chris'
+                    }
+                }
+            }
+        });
+
+        var cursor = state.cursor('profile');
+        // 更新指定路径上的值
+        assert.equal(cursor().parent.mother.name, 'nina');
+        cursor.update('parent.mother.name', 'rose');
+        assert.equal(cursor().parent.mother.name, 'rose');
+        // 更新整个cursor对应的值
+        cursor.update({name: 'monkey'});
+        assert.equal(cursor().name, 'monkey');
+        assert.equal(cursor.get('parent.mother.name'), undefined);
     });
 });
 
