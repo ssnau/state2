@@ -19,6 +19,25 @@ describe('cursor should work', function() {
         assert.equal(cursor().age, 10);
     });
 
+    it('empty path should throw error', function() {
+        var state = new State();
+        state.load({
+            profile: {
+                name: "jack",
+                age: 10
+            }
+        });
+
+        // undefined
+        assert.throws(function(){ state.cursor(); });
+        // object
+        assert.throws(function(){ state.cursor({}); });
+        
+        // empty
+        assert.throws(function(){ state.cursor(''); });
+        assert.throws(function(){ state.cursor([]); });
+    });
+
     it('cursor can be update', function () {
         var state = new State();
         state.load({

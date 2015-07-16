@@ -1,5 +1,12 @@
 var EventEmitter = require('eventemitter3');
 
+var log = process.env.NODE_ENV === 'development' ? function (msg) {
+    if (typeof console === 'undefined') return;
+    if (console.log) {
+        console.log(msg);
+    }
+} : function(){};
+
 function empty(obj) { return obj === undefined || obj === null || obj !== obj; }
 function assign(obj, _path, value) {
     var path = _path.concat();
@@ -45,8 +52,9 @@ State.prototype.toJS = function () {
   return this._state;
 }
 State.prototype.cursor = function (path) {
-  if (path && typeof path === 'string') { path = path.split('.'); }
-  if (!path) path = [];
+  if (typeof path !== 'string' && !Array.isArray(path)) throw Error('State.prototype.cursor only accept string or array, ' + (typeof path) + ' is forbidden');
+  if (!path.length) throw Error('State.prototype.cursor does not accept empty path');
+  if (typeof path === 'string') { path = path.split('.'); }
   var me = this;
 
   function ret(subpath) { return ret.get(subpath); }
@@ -57,7 +65,6 @@ State.prototype.cursor = function (path) {
   };
 
   // please use `update` to update the cursor pointed value.
-  // raw means if we should convert the value into immutableJS.
   ret.update = function (subpath, value) {
     if (arguments.length === 1) { value = subpath; subpath = []; }
     if (typeof subpath === 'string') subpath = subpath.split('.');
