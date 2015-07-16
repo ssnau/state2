@@ -152,3 +152,38 @@ assert.equal(cursor().name, 'monkey');
 assert.equal(cursor.get('parent.mother.name'), undefined);
 ```
 
+### namespace(path)
+
+命名空间，如果我们的一些cursor的前缀是一样的，那么最好采用命名空间节省代码量。如：
+
+```
+var state = new State();
+state.load({
+    profile: {
+        name: "jack",
+        age: 10,
+        parent: {
+            mother: {
+                name: 'nina'
+            },
+            father: {
+                name: 'chris'
+            }
+        }
+    }
+});
+
+// 设定一个命名空间
+var ns = state.namespace('profile');
+
+// 从命名空间开始查找cursor路径
+var nameCursor = ns.cursor('name'); // 相当于state.cursor('profile.name');
+var fatherCursor = ns.cursor('parent.father'); // 相当于state.cursor('profile.parent.father')
+
+assert.equal(nameCursor(), 'jack');
+assert.equal(fatherCursor().name, 'chris');
+```
+
+License
+----
+MIT
