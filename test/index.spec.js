@@ -254,3 +254,103 @@ describe('dirty check', function () {
 
 });
 
+
+describe('util function', function() {
+
+    it('should return new object' , function () {
+        var util = State.util;
+        var a = [1, 5, 6, 2];
+
+        var b = util.push(a, 10);
+        assert.deepEqual(b, [1, 5, 6, 2, 10]);
+        assert.deepEqual(a, [1, 5, 6, 2]);
+
+        var b = util.pop(a);
+        assert.deepEqual(b, [1, 5, 6]);
+        assert.deepEqual(a, [1, 5, 6, 2]);
+
+        var b = util.shift(a);
+        assert.deepEqual(b, [5, 6, 2]);
+        assert.deepEqual(a, [1, 5, 6, 2]);
+
+        var b = util.unshift(a, 1);
+        assert.deepEqual(b, [1, 1, 5, 6, 2]);
+        assert.deepEqual(a, [1, 5, 6, 2]);
+
+        var b = util.sort(a);
+        assert.deepEqual(b, [1, 2, 5, 6]);
+        assert.deepEqual(a, [1, 5, 6, 2]);
+
+        var b = util.reverse(a);
+        assert.deepEqual(b, [2, 6, 5, 1]);
+        assert.deepEqual(a, [1, 5, 6, 2]);
+
+        // removes 1 element from index 0, and inserts `3`
+        var b = util.splice(a, 0, 1, 3);
+        assert.deepEqual(b, [3, 5, 6, 2]);
+        assert.deepEqual(a, [1, 5, 6, 2]);
+
+        // removes 1 element from index 0, and inserts `3`
+        var b = util.remove(a, 1);
+        assert.deepEqual(b, [1, 6, 2]);
+        assert.deepEqual(a, [1, 5, 6, 2]);
+
+        var o = {name: 'jack'};
+        var b = util.merge(o, {age: 13});
+        assert.deepEqual(o, {name: 'jack'});
+        assert.deepEqual(b, {name: 'jack', age: 13});
+
+        var b = util.merge(o, {age: 23, name: 'john'});
+        assert.deepEqual(o, {name: 'jack'});
+        assert.deepEqual(b, {name: 'john', age: 23});
+    });
+
+    it('x method', function() {
+        State.injectPrototype();
+        var util = State.util;
+        var a = [1, 5, 6, 2];
+
+        var b = a.xpush(10);
+        assert.deepEqual(b, [1, 5, 6, 2, 10]);
+        assert.deepEqual(a, [1, 5, 6, 2]);
+
+        var b = a.xpop();
+        assert.deepEqual(b, [1, 5, 6]);
+        assert.deepEqual(a, [1, 5, 6, 2]);
+
+        var b = a.xshift();
+        assert.deepEqual(b, [5, 6, 2]);
+        assert.deepEqual(a, [1, 5, 6, 2]);
+
+        var b = a.xunshift(1);
+        assert.deepEqual(b, [1, 1, 5, 6, 2]);
+        assert.deepEqual(a, [1, 5, 6, 2]);
+
+        var b = a.xsort(a);
+        assert.deepEqual(b, [1, 2, 5, 6]);
+        assert.deepEqual(a, [1, 5, 6, 2]);
+
+        var b = a.xreverse();
+        assert.deepEqual(b, [2, 6, 5, 1]);
+        assert.deepEqual(a, [1, 5, 6, 2]);
+
+        // removes 1 element from index 0, and inserts `3`
+        var b = a.xsplice(0, 1, 3);
+        assert.deepEqual(b, [3, 5, 6, 2]);
+        assert.deepEqual(a, [1, 5, 6, 2]);
+
+        // removes 1 element from index 0, and inserts `3`
+        var b = a.xremove(1);
+        assert.deepEqual(b, [1, 6, 2]);
+        assert.deepEqual(a, [1, 5, 6, 2]);
+
+        var o = {name: 'jack'};
+        var b = o.xmerge({age: 13});
+        assert.deepEqual(o, {name: 'jack'});
+        assert.deepEqual(b, {name: 'jack', age: 13});
+
+        var b = o.xmerge({age: 23, name: 'john'});
+        assert.deepEqual(o, {name: 'jack'});
+        assert.deepEqual(b, {name: 'john', age: 23});
+    });
+});

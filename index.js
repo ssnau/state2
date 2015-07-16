@@ -115,17 +115,44 @@ State.prototype.namespace = function (ns) {
 
 // minimal set  util helper function to generate new array/object
 State.util = {
-    // array push/pop/shift/unshift
+    // 将array有副作用的方法push/pop/shift/unshift/sort实现一遍无副作用版的
     push: function (array, item) { return array.concat([item]); },
     unshift: function (array, item) { return [item].concat(array); },
-    pop: function (array) { remove(array, array.length -1); },
-    shift: function (array) { remove(array, 0); },
+    pop: function (array) { return remove(array, array.length -1); },
+    shift: function (array) { return remove(array, 0); },
+    sort: function (array, compareFn) { return array.concat().sort(compareFn); },
+    reverse: function (array) { return array.concat().reverse(); },
+    splice: function (array) { 
+        var x = array.concat(); 
+        var args = [].slice.call(arguments, 1);
+        x.splice.apply(x, args); 
+        return x;
+   },
 
-    // array remove 
+    // array remove
     remove: remove,
     // object merge
     merge: merge
 };
+
+State.X_PREFIX = 'x';
+State.injectPrototype = function () {
+    ['push', 'unshift', 'pop', 'shift', 'sort', 'reverse', 'splice', 'remove']
+        .forEach(function(name) {
+            Array.prototype['x' + name] = function(a, b) {
+                return State.util[name](this, a, b);
+            }
+        });
+    // argument对性能有很大影响，故单独放出
+    Array.prototype[State.X_PREFIX + 'splice'] = function () {
+        return State.util.splice.apply(null , [this].concat([].slice.call(arguments)));
+    }
+    Object.prototype[State.X_PREFIX + 'merge'] = function(a, b, c, d, e) {
+        return merge(this, a, b, c, d, e);
+    }
+}
+
 State.prototype.util = State.util;
+State.prototype.injectPrototype = State.injectPrototype;
 
 module.exports = State;
