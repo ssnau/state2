@@ -75,5 +75,17 @@ State.prototype.cursor = function (path) {
 
   return ret;
 }
+State.prototype.namespace = function (ns) {
+    var me = this;
+    if (typeof ns === 'string') { ns = ns.split('.'); }
+    return {
+        cursor: function (path) {
+            if (typeof path !== 'string' && !Array.isArray(path)) throw Error('State.prototype.cursor only accept string or array, ' + (typeof path) + ' is forbidden');
+            if (!path.length) throw Error('State.prototype.cursor does not accept empty path');
+            if (typeof path === 'string') { path = path.split('.'); }
+            return me.cursor(ns.concat(path));
+        }
+    };
+}
 
 module.exports = State;

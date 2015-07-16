@@ -171,5 +171,34 @@ describe('cursor should work', function() {
         assert.equal(cursor().name, 'monkey');
         assert.equal(cursor.get('parent.mother.name'), undefined);
     });
+
+    it('namespace', function () {
+        var state = new State();
+        state.load({
+            profile: {
+                name: "jack",
+                age: 10,
+                parent: {
+                    mother: {
+                        name: 'nina'
+                    },
+                    father: {
+                        name: 'chris'
+                    }
+                }
+            }
+        });
+
+        var ns = state.namespace('profile');
+        var nameCursor = ns.cursor('name');
+        var fatherCursor = ns.cursor('parent.father');
+
+        assert.equal(nameCursor(), 'jack');
+        assert.equal(fatherCursor().name, 'chris');
+
+        // can update
+        nameCursor.update('john');
+        assert.equal(state.cursor('profile.name')(), 'john');
+    });
 });
 
