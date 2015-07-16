@@ -1,12 +1,26 @@
 var EventEmitter = require('eventemitter3');
 
-var log = process.env.NODE_ENV === 'development' ? function (msg) {
-    if (typeof console === 'undefined') return;
-    if (console.log) {
-        console.log(msg);
-    }
-} : function(){};
-
+/**
+ * merge objects and create a result.
+ * #NOTICE: avoid using arguments for performance reason avoid using arguments..
+ */
+function merge(a, b, c, d, e, f, g) {
+    var dest = {};
+    if (g) throw Error('You pass too many args for merge method');
+    [a, b, c, d, e, f]
+        .filter(Boolean)
+        .forEach(function(obj) {
+            Object.keys(obj).forEach(function(k) {
+                dest[k] = obj[k];
+            });
+        });
+    return dest;
+}
+function remove(array, index) {
+    return array.filter(function(__, i) {
+        return index !== i;
+    });
+}
 function empty(obj) { return obj === undefined || obj === null || obj !== obj; }
 function assign(obj, _path, value) {
     var path = _path.concat();
@@ -71,7 +85,15 @@ State.prototype.cursor = function (path) {
     }
     if (arguments.length === 1) { value = subpath; subpath = []; }
     if (typeof subpath === 'string') subpath = subpath.split('.');
-    if (updateIn(me._state, path.concat(subpath), value)) {
+    var p = path.concat(subpath);
+    if (updateIn(me._state, p.concat(), value)) {
+        // 更新p路径上的所有变量的引用
+        var xpath = p.concat();
+        me._state = merge(me._state);
+        while(xpath.length) {
+            xpath.pop();
+            xpath.length && assign(me._state, xpath, merge(getIn(me._state, xpath)));
+        }
         me.emit('change', this._state);
     }
   };
@@ -90,5 +112,20 @@ State.prototype.namespace = function (ns) {
         }
     };
 }
+
+// minimal set  util helper function to generate new array/object
+State.util = {
+    // array push/pop/shift/unshift
+    push: function (array, item) { return array.concat([item]); },
+    unshift: function (array, item) { return [item].concat(array); },
+    pop: function (array) { remove(array, array.length -1); },
+    shift: function (array) { remove(array, 0); },
+
+    // array remove 
+    remove: remove,
+    // object merge
+    merge: merge
+};
+State.prototype.util = State.util;
 
 module.exports = State;

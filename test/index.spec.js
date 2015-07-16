@@ -202,3 +202,55 @@ describe('cursor should work', function() {
     });
 });
 
+describe('dirty check', function () {
+    var state, child0Cursor, child0, child1, children, profile, _state, child1Cursor;
+    beforeEach(function(){
+        state = new State();
+        state.load({
+            profile: {
+                children: [
+                    {
+                        name: 'jack'
+                    },
+                    {
+                        name: 'rose'
+                    }
+                ]
+            }
+        });
+
+        child0Cursor = state.cursor('profile.children.0');
+        child1Cursor = state.cursor('profile.children.1');
+        child0 = state.cursor('profile.children.0')();
+        child1 = state.cursor('profile.children.1')();
+        children = state.cursor('profile.children')();
+        profile = state.cursor('profile')();
+        _state = state._state;
+    });
+
+    it('update a cursor should make its path dirty', function () {
+        assert.equal(child0Cursor().name, 'jack');
+        child0Cursor.update('name', 'chris');
+        assert.equal(child0Cursor().name, 'chris');
+
+        assert.notEqual(child0Cursor(), child0);
+        assert.notEqual(state.cursor('profile.children')(), children);
+        assert.notEqual(state.cursor('profile')(), profile);
+        assert.notEqual(state._state, _state);
+        // but child1 should not change
+        assert.equal(child1Cursor(), child1);
+    });
+
+    it('wont update if the value not changed', function () {
+        assert.equal(child0Cursor().name, 'jack');
+        child0Cursor.update('name', 'jack'); // wont update
+
+        assert.equal(child0Cursor(), child0);
+        assert.equal(state.cursor('profile.children')(), children);
+        assert.equal(state.cursor('profile')(), profile);
+        assert.equal(state._state, _state);
+        assert.equal(child1Cursor(), child1);
+    });
+
+});
+
