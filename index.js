@@ -66,6 +66,9 @@ State.prototype.cursor = function (path) {
 
   // please use `update` to update the cursor pointed value.
   ret.update = function (subpath, value) {
+    if (typeof subpath === 'function' || typeof subpath === 'function') {
+        throw Error('cursor.update does not support unserializable object such as function');
+    }
     if (arguments.length === 1) { value = subpath; subpath = []; }
     if (typeof subpath === 'string') subpath = subpath.split('.');
     if (updateIn(me._state, path.concat(subpath), value)) {
