@@ -152,6 +152,48 @@ assert.equal(cursor().name, 'monkey');
 assert.equal(cursor.get('parent.mother.name'), undefined);
 ```
 
+### mergeUpdate(obj) 
+
+将obj中所有键的路径，更新到cursor对应的值上, 这是一个深度merge。
+
+```
+var state = new State();
+state.load({
+    profile: {
+        name: "jack",
+        age: 10,
+        parent: {
+            mother: {
+                name: 'nina'
+            },
+            father: {
+                name: 'chris'
+            }
+        }
+    }
+});
+
+var cursor = state.cursor('profile');
+// 更新指定路径上的值
+cursor.mergeUpdate({
+    parent: {
+        mother: {
+            name: 'coffee'
+        }
+    }
+});
+
+// 更新后的cursor()值为：
+{
+    parent: {
+        mother: { name: 'coffee' }
+        father: { name: 'chris' }
+    }
+}
+
+```
+
+
 ### namespace(path)
 
 命名空间，如果我们的一些cursor的前缀是一样的，那么最好采用命名空间节省代码量。如：
