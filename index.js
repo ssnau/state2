@@ -52,6 +52,29 @@ function updateIn(obj, path, value) {
         return true;
     }
 }
+function keyPathsCall(obj, fn) {
+    var keys = [];
+    function traverse(obj) {
+        // 超过十层，自动终止，防止循环引用导致死循环
+        if (keys.length >= 10) {
+            fn(keys.concat(), obj);
+            return;
+        }
+
+        if (typeof obj !== 'object') {
+            fn(keys.concat(), obj);
+            return;
+        }
+
+        Object.keys(obj).forEach(function (key) {
+            keys.push(key);
+            traverse(obj[key]);
+            keys.pop();
+        });
+    }
+
+    traverse(obj);
+}
 
 function State(state, reviver) {
   this.load(state || {});
@@ -80,7 +103,7 @@ State.prototype.cursor = function (path) {
 
   // please use `update` to update the cursor pointed value.
   ret.update = function (subpath, value) {
-    if (typeof subpath === 'function' || typeof subpath === 'function') {
+    if (typeof subpath === 'function') {
         throw Error('cursor.update does not support unserializable object such as function');
     }
     if (arguments.length === 1) { value = subpath; subpath = []; }
@@ -92,12 +115,32 @@ State.prototype.cursor = function (path) {
         me._state = merge(me._state);
         while(xpath.length) {
             xpath.pop();
-            xpath.length && assign(me._state, xpath, merge(getIn(me._state, xpath)));
+            xpath.length && INNER.assign(me._state, xpath, merge(getIn(me._state, xpath)));
         }
         me.emit('change', this._state);
     }
   };
 
+  ret.mergeUpdate = function (value) {
+    var changed, changedPaths = [];
+    keyPathsCall(value, function(kpath, val) {
+        changed = updateIn(me._state, path.concat(kpath), val) || changed;
+        changedPaths.push(path.concat(kpath));
+    });
+    var cached = [], JOIN_MARK = "!@#@";
+    changedPaths.forEach(function(p) {
+        var xpath = p.concat();
+        me._state = merge(me._state);
+        while (xpath.length) {
+            xpath.pop();
+            // 如果在xpath处已经有了，说明也不用比较更短路径了，直接break
+            if (cached.indexOf(xpath.join(JOIN_MARK)) > 0) break;
+            cached.push(xpath.join(JOIN_MARK));
+            xpath.length && INNER.assign(me._state, xpath, merge(getIn(me._state, xpath)));
+        }
+    });
+    changedPaths.length && me.emit('change', this._state);
+  };
   return ret;
 }
 State.prototype.namespace = function (ns) {
@@ -156,3 +199,8 @@ State.prototype.util = State.util;
 State.prototype.injectPrototype = State.injectPrototype;
 
 module.exports = State;
+
+// For test reason
+var INNER = State.INNER_FUNC = {
+    assign: assign,
+};

@@ -252,8 +252,39 @@ describe('dirty check', function () {
         assert.equal(child1Cursor(), child1);
     });
 
-});
+    it('mergeUpdate a cursor should batch update its dirty path', function () {
+        var call_assign_count = 0;
+        // wrap the assign function with test hook info
+        var oldAssign = State.INNER_FUNC.assign;
+        State.INNER_FUNC.assign = function(a, path, c, d, e) {
+            // 尽管更新的两条路径上都包含prfoile，
+            // 对于profile这个键上的值，只会更新一次
+            if (path[path.length - 1] == 'profile') { call_assign_count++; }
+            return oldAssign(a, path, c, d, e);
+        }
+        state.cursor('profile').mergeUpdate({
+            children: {
+                0: {
+                    name: 'rina'
+                },
+                1: {
+                    name: 'tina'
+                }
+            }
+        });
+        State.INNER_FUNC.assign = oldAssign;
 
+        assert.equal(child0Cursor().name, 'rina');
+        assert.equal(child1Cursor().name, 'tina');
+
+        assert.notEqual(child0Cursor(), child0);
+        assert.notEqual(state.cursor('profile.children')(), children);
+        assert.notEqual(state.cursor('profile')(), profile);
+        assert.notEqual(_state, state._state);
+
+        assert.equal(call_assign_count, 1);
+    });
+});
 
 describe('util function', function() {
 
