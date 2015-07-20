@@ -226,23 +226,6 @@ assert.equal(nameCursor(), 'jack');
 assert.equal(fatherCursor().name, 'chris');
 ```
 
-FAQ
--------
-
-为什么update方法是更新对应值，而不像react中的setState仅更新对应键？
-
-原因有二：
-- setState中的state永远是一个obj, 而cursor对应的值却可以是任意类型。
-- 对如支持仅更新对应键，那嵌套键呢？是深merge还是浅merge？这里容易有分歧。
-- 用户自己实现一个带merge功能的update并不麻烦：
-```
-function update(cursor, obj) {
-    Object.keys(obj).forEach(function(key) {
-        cursor.update(key, obj[key]);
-    });
-}
-```
-
 License
 ----
 MIT
