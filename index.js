@@ -109,14 +109,13 @@ State.prototype.cursor = function (path, errorplaceholder) {
     }
     if (arguments.length === 1) { value = subpath; subpath = []; }
     if (typeof subpath === 'string') subpath = subpath.split('.');
-    var p = path.concat(subpath);
-    if (updateIn(me._state, p.concat(), value)) {
+    var p = ['_state'].concat(path.concat(subpath));
+    if (updateIn(me, p.concat(), value)) {
         // 更新p路径上的所有变量的引用
         var xpath = p.concat();
-        me._state = merge(me._state);
         while(xpath.length) {
             xpath.pop();
-            xpath.length && INNER.assign(me._state, xpath, merge(getIn(me._state, xpath)));
+            xpath.length && INNER.assign(me, xpath, merge(getIn(me, xpath)));
         }
         me.emit('change', this._state);
     }
@@ -125,19 +124,18 @@ State.prototype.cursor = function (path, errorplaceholder) {
   ret.mergeUpdate = function (value) {
     var changed, changedPaths = [];
     keyPathsCall(value, function(kpath, val) {
-        changed = updateIn(me._state, path.concat(kpath), val) || changed;
+        changed = updateIn(me, ['_state'].concat(path).concat(kpath), val) || changed;
         changedPaths.push(path.concat(kpath));
     });
     var cached = [], JOIN_MARK = "!@#@";
     changedPaths.forEach(function(p) {
-        var xpath = p.concat();
-        me._state = merge(me._state);
+        var xpath = ['_state'].concat(p);
         while (xpath.length) {
             xpath.pop();
             // 如果在xpath处已经有了，说明也不用比较更短路径了，直接break
             if (cached.indexOf(xpath.join(JOIN_MARK)) > 0) break;
             cached.push(xpath.join(JOIN_MARK));
-            xpath.length && INNER.assign(me._state, xpath, merge(getIn(me._state, xpath)));
+            xpath.length && INNER.assign(me, xpath, merge(getIn(me, xpath)));
         }
     });
     changedPaths.length && me.emit('change', this._state);
