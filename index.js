@@ -88,7 +88,8 @@ State.prototype.load = function (state) {
 State.prototype.toJS = function () {
   return this._state;
 }
-State.prototype.cursor = function (path) {
+State.prototype.cursor = function (path, errorplaceholder) {
+  if (errorplaceholder) throw Error("cursor doesn't support a second argument");
   if (typeof path !== 'string' && !Array.isArray(path)) throw Error('State.prototype.cursor only accept string or array, ' + (typeof path) + ' is forbidden');
   if (!path.length) throw Error('State.prototype.cursor does not accept empty path');
   if (typeof path === 'string') { path = path.split('.'); }
@@ -178,21 +179,37 @@ State.util = {
     merge: merge
 };
 
+/**
+ * 如果直接修改Object.prototype，mocha的coverage会跑挂,大概是因为enumerable的原因
+ */
+function defindProps(obj, name, value) {
+    if (Object.defineProperty) {
+        Object.defineProperty(obj, name, {
+              enumerable: false,
+                configurable: true,
+                  writable: true,
+                    value: value
+        });
+    } else {
+        obj[name] = value;
+    }
+}
+
 State.X_PREFIX = 'x';
 State.injectPrototype = function () {
     ['push', 'unshift', 'pop', 'shift', 'sort', 'reverse', 'splice', 'remove']
         .forEach(function(name) {
-            Array.prototype['x' + name] = function(a, b) {
+            defindProps(Array.prototype, 'x' + name, function(a, b) {
                 return State.util[name](this, a, b);
-            }
+            });
         });
     // argument对性能有很大影响，故单独放出
-    Array.prototype[State.X_PREFIX + 'splice'] = function () {
+    defindProps(Array.prototype, State.X_PREFIX + 'splice', function () {
         return State.util.splice.apply(null , [this].concat([].slice.call(arguments)));
-    }
-    Object.prototype[State.X_PREFIX + 'merge'] = function(a, b, c, d, e) {
+    });
+    defindProps(Object.prototype, State.X_PREFIX + 'merge', function(a, b, c, d, e) {
         return merge(this, a, b, c, d, e);
-    }
+    });
 }
 
 State.prototype.util = State.util;
@@ -203,4 +220,5 @@ module.exports = State;
 // For test reason
 var INNER = State.INNER_FUNC = {
     assign: assign,
+    keyPathsCall: keyPathsCall
 };

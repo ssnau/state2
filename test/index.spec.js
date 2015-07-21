@@ -1,7 +1,32 @@
+var path = require('path');
+var indexfile = path.join(__dirname, '../index.js');
+require('blanket')({
+    pattern: function (filename) {
+        return indexfile === filename;
+    }
+});
 var assert = require('assert');
 var State = require('../');
 
 describe('cursor should work', function() {
+    it('toJS', function(){
+        var state = new State();
+        state.load({
+            profile: {
+                name: "jack",
+                age: 10
+            }
+        });
+        assert.deepEqual(state.toJS(), 
+            {
+                profile: {
+                    name: "jack",
+                    age: 10
+                }
+            }
+        );
+
+    });
     it('cursor', function() {
         var state = new State();
         state.load({
@@ -54,6 +79,16 @@ describe('cursor should work', function() {
         profileCursor.update({ship: 'titanic'});
         assert.deepEqual(profileCursor(), {ship: 'titanic'});
     });
+
+    it('cursor update should not accept function', function () {
+        var state = new State();
+        assert.throws(function () {
+            state.cursor('abc').update(function(){
+
+            });
+        });
+    });
+    
 
     it('set cursor value as undefined', function () {
         var state = new State();
@@ -384,4 +419,22 @@ describe('util function', function() {
         assert.deepEqual(o, {name: 'jack'});
         assert.deepEqual(b, {name: 'john', age: 23});
     });
+});
+
+
+describe('inner function', function () {
+    var keyPathsCall = State.INNER_FUNC.keyPathsCall;
+
+    it('should auto-terminal if depth more than 10', function () {
+        var a = { b : {}};
+        var b = { a : a};
+        a.b = b;
+
+        var maxlength = 0;
+        keyPathsCall(a, function (path, obj) {
+            maxlength = Math.max(maxlength, path.length);
+        });
+        assert.equal(maxlength, 10);
+    });
+
 });
