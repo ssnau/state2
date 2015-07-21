@@ -2,7 +2,7 @@ var EventEmitter = require('eventemitter3');
 
 /**
  * merge objects and create a result.
- * #NOTICE: avoid using arguments for performance reason avoid using arguments..
+ * #NOTICE: for performance reason, avoid using arguments..
  */
 function merge(a, b, c, d, e, f, g) {
     var dest = {};
