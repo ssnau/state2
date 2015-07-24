@@ -7,13 +7,18 @@ var EventEmitter = require('eventemitter3');
 function merge(a, b, c, d, e, f, g) {
     var dest = {};
     if (g) throw Error('You pass too many args for merge method');
-    [a, b, c, d, e, f]
-        .filter(Boolean)
-        .forEach(function(obj) {
-            Object.keys(obj).forEach(function(k) {
-                dest[k] = obj[k];
+    // in case any of them not object
+    try {
+        [a, b, c, d, e, f]
+            .filter(Boolean)
+            .forEach(function(obj) {
+                Object.keys(obj).forEach(function(k) {
+                    dest[k] = obj[k];
+                });
             });
-        });
+    } catch (e) {
+        return dest;
+    }
     return dest;
 }
 function remove(array, index) {
@@ -42,15 +47,6 @@ function getIn(obj, _path) {
         if (empty(obj)) return void 0;
     }
     return empty(obj) ? void 0 : obj[last];
-}
-function updateIn(obj, path, value) {
-    var originVal = getIn(obj, path);
-    if (originVal === value) {
-        return false;
-    } else {
-        assign(obj, path, value);
-        return true;
-    }
 }
 function keyPathsCall(obj, fn) {
     var keys = [];
@@ -110,35 +106,43 @@ State.prototype.cursor = function (path, errorplaceholder) {
     if (arguments.length === 1) { value = subpath; subpath = []; }
     if (typeof subpath === 'string') subpath = subpath.split('.');
     var p = ['_state'].concat(path.concat(subpath));
-    if (updateIn(me, p.concat(), value)) {
+    if (getIn(me, p.concat()) !== value) {
         // 更新p路径上的所有变量的引用
-        var xpath = p.concat();
-        while(xpath.length) {
-            xpath.pop();
+        var i = 1;
+        while(i < p.length) {
+            var xpath = p.slice(0, i);
             xpath.length && INNER.assign(me, xpath, merge(getIn(me, xpath)));
+            i++;
         }
-        me.emit('change', this._state);
+        assign(me, p.concat(), value);
+        me.emit('change', me._state);
     }
   };
 
   ret.mergeUpdate = function (value) {
     var changed, changedPaths = [];
     keyPathsCall(value, function(kpath, val) {
-        changed = updateIn(me, ['_state'].concat(path).concat(kpath), val) || changed;
-        changedPaths.push(path.concat(kpath));
+        var abspath = ['_state'].concat(path).concat(kpath);
+        changed = !(getIn(me, abspath.concat()) === val);
+        if (changed) changedPaths.push([abspath.concat(), val]);
     });
+
     var cached = [], JOIN_MARK = "!@#@";
-    changedPaths.forEach(function(p) {
-        var xpath = ['_state'].concat(p);
-        while (xpath.length) {
-            xpath.pop();
-            // 如果在xpath处已经有了，说明也不用比较更短路径了，直接break
-            if (cached.indexOf(xpath.join(JOIN_MARK)) > 0) break;
+    changedPaths.forEach(function(conf) {
+        // 更新p路径上的所有变量的引用
+        var i = 1;
+        var p = conf[0];
+        var v = conf[1];
+        while(i < p.length) {
+            var xpath = p.slice(0, i);
+            if (cached.indexOf(xpath.join(JOIN_MARK)) > -1) break;
             cached.push(xpath.join(JOIN_MARK));
             xpath.length && INNER.assign(me, xpath, merge(getIn(me, xpath)));
+            i++;
         }
+        assign(me, p.concat(), v);
     });
-    changedPaths.length && me.emit('change', this._state);
+    changedPaths.length && me.emit('change', me._state);
   };
   return ret;
 }

@@ -1,6 +1,6 @@
 {
   "name": "state2",
-  "version": "1.4.4",
+  "version": "1.4.5",
   "description": "a simple cursor based state implementation",
   "main": "index.js",
   "directories": {
@@ -21,7 +21,8 @@
   "license": "MIT",
   "devDependencies": {
     "blanket": "^1.1.7",
-    "mocha": "^2.2.5"
+    "mocha": "^2.2.5",
+    "udc": "^1.0.1"
   },
   "dependencies": {
     "eventemitter3": "^1.1.0"

@@ -7,8 +7,9 @@ require('blanket')({
 });
 var assert = require('assert');
 var State = require('../');
+var udc = require('udc');
 
-describe('cursor should work', function() {
+describe('cursor should work:', function() {
     it('toJS', function(){
         var state = new State();
         state.load({
@@ -288,15 +289,8 @@ describe('dirty check', function () {
     });
 
     it('mergeUpdate a cursor should batch update its dirty path', function () {
-        var call_assign_count = 0;
         // wrap the assign function with test hook info
         var oldAssign = State.INNER_FUNC.assign;
-        State.INNER_FUNC.assign = function(a, path, c, d, e) {
-            // 尽管更新的两条路径上都包含prfoile，
-            // 对于profile这个键上的值，只会更新一次
-            if (path[path.length - 1] == 'profile') { call_assign_count++; }
-            return oldAssign(a, path, c, d, e);
-        }
         state.cursor('profile').mergeUpdate({
             children: {
                 0: {
@@ -307,7 +301,6 @@ describe('dirty check', function () {
                 }
             }
         });
-        State.INNER_FUNC.assign = oldAssign;
 
         assert.equal(child0Cursor().name, 'rina');
         assert.equal(child1Cursor().name, 'tina');
@@ -316,8 +309,6 @@ describe('dirty check', function () {
         assert.notEqual(state.cursor('profile.children')(), children);
         assert.notEqual(state.cursor('profile')(), profile);
         assert.notEqual(_state, state._state);
-
-        assert.equal(call_assign_count, 1);
     });
 });
 
@@ -421,7 +412,6 @@ describe('util function', function() {
     });
 });
 
-
 describe('inner function', function () {
     var keyPathsCall = State.INNER_FUNC.keyPathsCall;
 
@@ -437,4 +427,39 @@ describe('inner function', function () {
         assert.equal(maxlength, 10);
     });
 
+});
+
+describe('time machine', function () {
+    it('time machine', function () {
+        var state = new State();
+        var states = [];
+        state.on('change', function (_state) {
+            states.push(_state);
+        });
+        var initialState = {
+            profile: {
+                name: "jack",
+                age: 10,
+                parent: {
+                    mother: {
+                        name: 'nina'
+                    },
+                    father: {
+                        name: 'chris'
+                    }
+                }
+            }
+        };
+
+        state.load(udc(initialState));
+        assert.equal(states.length, 1);
+        assert.deepEqual(states[0], initialState);
+
+        state.cursor('profile.parent.mother.name').update('sony');
+        assert.equal(states.length, 2);
+        // states[0]的值不会因为update被修改
+        assert.deepEqual(states[0], initialState);
+        assert.notEqual(states[1], states[0]);
+        assert.equal(states[1].profile.parent.mother.name, 'sony');
+    });
 });
