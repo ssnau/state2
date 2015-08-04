@@ -45,7 +45,7 @@ describe('cursor should work:', function() {
         assert.equal(cursor().age, 10);
     });
 
-    it('empty path should throw error', function() {
+    it('empty path should not throw error', function() {
         var state = new State();
         state.load({
             profile: {
@@ -55,13 +55,15 @@ describe('cursor should work:', function() {
         });
 
         // undefined
-        assert.throws(function(){ state.cursor(); });
+        state.cursor();
+        state.cursor('');
+        state.cursor([]);
+        
+    });
+
+    it('illegal path should throw error', function() {
         // object
         assert.throws(function(){ state.cursor({}); });
-        
-        // empty
-        assert.throws(function(){ state.cursor(''); });
-        assert.throws(function(){ state.cursor([]); });
     });
 
     it('cursor can be update', function () {
@@ -81,6 +83,32 @@ describe('cursor should work:', function() {
         assert.deepEqual(profileCursor(), {ship: 'titanic'});
     });
 
+    it('empty cursor should update the whole state', function () {
+        var state = new State();
+        state.load({
+            profile: {
+                name: "jack",
+                age: 10
+            }
+        });
+
+        var gc = state.cursor();
+        var nc = state.cursor('profile.name');
+
+        assert.equal(gc.get('profile.name'), 'jack');
+        assert.equal(nc(), 'jack');
+        assert.equal(gc.get('profile.age'), 10);
+
+        gc.update({x:100});
+        assert.deepEqual(state._state, {x: 100});
+
+        assert.equal(gc.get('profile.name'), void 0);
+        assert.equal(nc(), void 0);
+        assert.equal(gc.get('profile.age'), void 0);
+        assert.equal(gc.get('x'), 100);
+
+    });
+
     it('cursor update should not accept function', function () {
         var state = new State();
         assert.throws(function () {
@@ -89,7 +117,6 @@ describe('cursor should work:', function() {
             });
         });
     });
-    
 
     it('set cursor value as undefined', function () {
         var state = new State();
@@ -235,6 +262,28 @@ describe('cursor should work:', function() {
         // can update
         nameCursor.update('john');
         assert.equal(state.cursor('profile.name')(), 'john');
+    });
+
+    it('find cursor from object', function() {
+        state = new State();
+        var data = {
+            profile: {
+                children: [
+                    {
+                        name: 'jack'
+                    },
+                    {
+                        name: 'rose'
+                    }
+                ]
+            }
+        };
+        state.load(data);
+        var c0 = state.cursorFromObject(data.profile.children[0]);
+        assert.equal(c0.get('name'), 'jack');
+        c0.update('name', 'peter');
+        assert.equal(c0.get('name'), 'peter');
+        assert.equal(state.cursor('profile.children.0.name')(), 'peter');
     });
 });
 

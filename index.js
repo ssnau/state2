@@ -48,8 +48,10 @@ function getIn(obj, _path) {
     }
     return empty(obj) ? void 0 : obj[last];
 }
-function keyPathsCall(obj, fn) {
+
+function traverseObject(obj, fn) {
     var keys = [];
+    var val;
     function traverse(obj) {
         // 超过十层，自动终止，防止循环引用导致死循环
         if (keys.length >= 10) {
@@ -57,10 +59,8 @@ function keyPathsCall(obj, fn) {
             return;
         }
 
-        if (typeof obj !== 'object') {
-            fn(keys.concat(), obj);
-            return;
-        }
+        val = fn(keys.concat(), obj);
+        if (val === false) return;
 
         Object.keys(obj).forEach(function (key) {
             keys.push(key);
@@ -70,6 +70,15 @@ function keyPathsCall(obj, fn) {
     }
 
     traverse(obj);
+}
+
+function keyPathsCall(obj, fn) {
+    traverseObject(obj, function(keys, o) {
+        if (typeof o !== 'object' || keys.length >= 10) {
+            fn(keys.concat(), o);
+            return;
+        }
+    });
 }
 
 function State(state, reviver) {
@@ -85,9 +94,9 @@ State.prototype.toJS = function () {
   return this._state;
 }
 State.prototype.cursor = function (path, errorplaceholder) {
+  if (!path) path = [];
   if (errorplaceholder) throw Error("cursor doesn't support a second argument");
   if (typeof path !== 'string' && !Array.isArray(path)) throw Error('State.prototype.cursor only accept string or array, ' + (typeof path) + ' is forbidden');
-  if (!path.length) throw Error('State.prototype.cursor does not accept empty path');
   if (typeof path === 'string') { path = path.split('.'); }
   var me = this;
 
@@ -95,7 +104,7 @@ State.prototype.cursor = function (path, errorplaceholder) {
 
   ret.get = function (subpath) {
     if (typeof subpath === 'string') { subpath = subpath.split('.'); }
-    return getIn(me._state, path.concat(typeof subpath === 'undefined' ? [] : subpath));
+    return getIn(me, ['_state'].concat(path).concat(typeof subpath === 'undefined' ? [] : subpath));
   };
 
   // please use `update` to update the cursor pointed value.
@@ -145,6 +154,17 @@ State.prototype.cursor = function (path, errorplaceholder) {
     changedPaths.length && me.emit('change', me._state);
   };
   return ret;
+}
+State.prototype.cursorFromObject = function (obj) {
+    if (typeof obj !== 'object') throw Error('parameter for cursorFromObject must be an object');
+    var path = null;
+    traverseObject(this._state, function (paths, object) {
+        if (object === obj) {
+            path = paths;
+            return false; // terminate searching
+        }
+    });
+    return path ? this.cursor(path) : void 0;
 }
 State.prototype.namespace = function (ns) {
     var me = this;
