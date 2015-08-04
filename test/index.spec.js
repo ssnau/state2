@@ -455,6 +455,13 @@ describe('util function', function() {
         assert.deepEqual(o, {name: 'jack'});
         assert.deepEqual(b, {name: 'jack', age: 13});
 
+        var a = [1, 2, 3];
+        var b = a.xmerge();
+        assert.deepEqual(a, b);
+        assert.ok(Array.isArray(b));
+        var b = a.xmerge([9]);
+        assert.deepEqual(b, [9, 2, 3]);
+
         var b = o.xmerge({age: 23, name: 'john'});
         assert.deepEqual(o, {name: 'jack'});
         assert.deepEqual(b, {name: 'john', age: 23});

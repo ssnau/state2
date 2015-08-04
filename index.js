@@ -5,7 +5,7 @@ var EventEmitter = require('eventemitter3');
  * #NOTICE: for performance reason, avoid using arguments..
  */
 function merge(a, b, c, d, e, f, g) {
-    var dest = {};
+    var dest = Array.isArray(a) ? [] : {}; // the type of the object is determined by the first argument
     if (g) throw Error('You pass too many args for merge method');
     // in case any of them not object
     try {
