@@ -255,9 +255,25 @@ describe('cursor should work:', function() {
         var ns = state.namespace('profile');
         var nameCursor = ns.cursor('name');
         var fatherCursor = ns.cursor('parent.father');
+        var profileCursor = ns.cursor();
 
         assert.equal(nameCursor(), 'jack');
         assert.equal(fatherCursor().name, 'chris');
+        assert.deepEqual(
+            profileCursor(),
+             {
+                name: "jack",
+                age: 10,
+                parent: {
+                    mother: {
+                        name: 'nina'
+                    },
+                    father: {
+                        name: 'chris'
+                    }
+                }
+            }
+        );
 
         // can update
         nameCursor.update('john');
