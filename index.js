@@ -90,8 +90,13 @@ State.prototype.load = function (state) {
   this._state = state;
   this.emit('change', this._state);
 };
+// deprecated.
 State.prototype.toJS = function () {
   return this._state;
+}
+State.prototype.get = function (path) {
+  if (!path) return this._state;
+  return this.cursor(path)();
 }
 State.prototype.cursor = function (path, errorplaceholder) {
   if (!path) path = [];

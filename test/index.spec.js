@@ -484,6 +484,32 @@ describe('util function', function() {
     });
 });
 
+describe('get function', function() {
+  it('should get _state', function () {
+      var state = new State();
+      state.load({
+          profile: {
+              name: "jack",
+              age: 10
+          }
+      });
+      assert.equal(state.get().profile.name, 'jack');
+      assert.equal(state.get().profile.age, 10);
+  });
+
+  it('should get by path', function () {
+      var state = new State();
+      state.load({
+          profile: {
+              name: "jack",
+              age: 10
+          }
+      });
+      assert.equal(state.get('profile.name'), 'jack');
+      assert.equal(state.get('profile.age'), 10);
+  });
+});
+
 describe('inner function', function () {
     var keyPathsCall = State.INNER_FUNC.keyPathsCall;
 
