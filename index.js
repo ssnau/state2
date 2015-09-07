@@ -83,6 +83,7 @@ function keyPathsCall(obj, fn) {
 
 function State(state, reviver) {
   this.load(state || {});
+  this.clearRecord();
   this.emit('change', this._state);
 }
 State.prototype = new EventEmitter;
@@ -156,7 +157,9 @@ State.prototype.cursor = function (path, errorplaceholder) {
         }
         assign(me, p.concat(), v);
     });
-    changedPaths.length && me.emit('change', me._state);
+    if (changedPaths.length) {
+      me.emit('change', me._state);
+    }
   };
   return ret;
 }
@@ -183,6 +186,24 @@ State.prototype.namespace = function (ns) {
             return me.cursor(ns.concat(path));
         }
     };
+}
+
+// record api
+State.prototype.clearRecord = function () { this._records = []; this._recordIndex = -1; }
+State.prototype.undo = function() {  
+  var state = this._records[this._recordIndex - 1];
+  if (state) this.load(state);
+  this._recordIndex--;
+}
+State.prototype.redo = function() { 
+  var state = this._records[this._recordIndex + 1];
+  if (state) this.load(state);
+  this._recordIndex++;
+}
+State.prototype.snapshot = function () { 
+  this._records[this._recordIndex + 1] = this._state;
+  this._records.length = this._recordIndex + 2;
+  this._recordIndex++;
 }
 
 // minimal set  util helper function to generate new array/object

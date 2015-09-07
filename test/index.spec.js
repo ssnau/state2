@@ -574,3 +574,39 @@ describe('time machine', function () {
         assert.equal(states[1].profile.parent.mother.name, 'sony');
     });
 });
+
+describe('time machine 2', function () {
+  var state = new State();
+  state.load({
+    name: 'jack',
+    age: 19,
+    profile: {
+      father: 'john',
+      mother: 'nina'
+    }
+  });
+
+  state.snapshot();
+
+  state.cursor('name').update('carl');
+  state.snapshot(); // single change
+
+  state.cursor('name').update('daniel');
+  state.cursor('profile.father').update('zoe');
+  state.snapshot(); // cascade change
+
+  state.undo(); // undo
+  assert.equal(state.get('name'), 'carl');
+  assert.equal(state.get('profile.father'), 'john');
+
+  state.redo(); // redo
+  assert.equal(state.get('name'), 'daniel');
+  assert.equal(state.get('profile.father'), 'zoe');
+
+  state.undo();
+  state.undo();
+  assert.equal(state.get('name'), 'jack');
+
+
+
+});
