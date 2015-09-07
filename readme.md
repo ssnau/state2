@@ -68,6 +68,11 @@ assert.equal(cursor(), 'open-the-door');
 
 将state的内部数据更新为obj。
 
+#### get(path)
+
+读取state的path路径上的数据，若路径不存在则返回undefined.
+path可以是字符串或数据。
+
 ```
 var state = new State();
 state.load({name: 'jack'});
@@ -150,6 +155,27 @@ assert.equal(cursor().parent.mother.name, 'rose');
 cursor.update({name: 'monkey'});
 assert.equal(cursor().name, 'monkey');
 assert.equal(cursor.get('parent.mother.name'), undefined);
+```
+
+#### cursorFromObject(obj)
+
+通过传入一个对象，来查找到它对应的cursor, 进而修改这个路径上的内容。
+注意：必需是一个对象，不能是基本类型数据。
+
+```
+var state = new State();
+state.load({
+  profile: {
+    name: 'jack',
+    age: 18
+  }
+});
+
+var profile = state.get('profile');
+var profilecursor = state.cursorFromObject(profile);
+
+cursor.update('name', 'john');
+assert.equal(state.get('profile.name'), 'john');
 ```
 
 ### mergeUpdate(obj) 

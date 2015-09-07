@@ -300,6 +300,19 @@ describe('cursor should work:', function() {
         c0.update('name', 'peter');
         assert.equal(c0.get('name'), 'peter');
         assert.equal(state.cursor('profile.children.0.name')(), 'peter');
+
+        var state = new State();
+        state.load({
+          profile: {
+            name: 'jack',
+            age: 18
+          }
+        });
+
+        var profile = state.get('profile');
+        var cursor = state.cursorFromObject(profile);
+        cursor.update('name', 'john');
+        assert.equal(state.get('profile.name'), 'john');
     });
 });
 
