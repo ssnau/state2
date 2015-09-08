@@ -523,6 +523,23 @@ describe('get function', function() {
   });
 });
 
+describe('updatae function', function() {
+  it('should update _state', function () {
+      var state = new State();
+      state.load({
+          profile: {
+              name: "jack",
+              age: 10
+          }
+      });
+      state.update('profile.name', 'john');
+      assert.equal(state.get().profile.name, 'john');
+      state.update('profile.age', 15);
+      assert.equal(state.get().profile.age, 15);
+  });
+
+});
+
 describe('inner function', function () {
     var keyPathsCall = State.INNER_FUNC.keyPathsCall;
 
