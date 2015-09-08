@@ -620,6 +620,20 @@ describe('time machine 2', function () {
   assert.equal(state.get('name'), 'daniel');
   assert.equal(state.get('profile.father'), 'zoe');
 
+  // it doesn't matter to redo/undo out of boundary time
+  state.undo();
+  state.undo();
+  state.undo();
+  state.undo();
+  state.undo();
+  state.undo();
+  state.undo();
+
+  state.redo();
+  state.redo();
+  state.redo();
+  state.redo();
+  state.redo();
   state.undo();
   state.undo();
   assert.equal(state.get('name'), 'jack');

@@ -194,15 +194,27 @@ State.prototype.namespace = function (ns) {
 
 // record api
 State.prototype.clearRecord = function () { this._records = []; this._recordIndex = -1; }
+State.prototype.canUndo = function () {
+  var state = this._records[this._recordIndex - 1];
+  return !!state;
+};
+State.prototype.canRedo = function () {
+  var state = this._records[this._recordIndex + 1];
+  return !!state;
+}
 State.prototype.undo = function() {  
   var state = this._records[this._recordIndex - 1];
-  if (state) this.load(state);
-  this._recordIndex--;
+  if (state) {
+      this.load(state);
+      this._recordIndex--;
+  }
 }
 State.prototype.redo = function() { 
   var state = this._records[this._recordIndex + 1];
-  if (state) this.load(state);
-  this._recordIndex++;
+  if (state) {
+      this.load(state);
+      this._recordIndex++;
+  }
 }
 State.prototype.snapshot = function () { 
   this._records[this._recordIndex + 1] = this._state;
