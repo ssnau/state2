@@ -1,6 +1,6 @@
 {
   "name": "state2",
-  "version": "1.4.8",
+  "version": "1.4.11",
   "description": "a simple cursor based state implementation",
   "main": "index.js",
   "directories": {

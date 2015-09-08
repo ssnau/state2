@@ -300,6 +300,19 @@ describe('cursor should work:', function() {
         c0.update('name', 'peter');
         assert.equal(c0.get('name'), 'peter');
         assert.equal(state.cursor('profile.children.0.name')(), 'peter');
+
+        var state = new State();
+        state.load({
+          profile: {
+            name: 'jack',
+            age: 18
+          }
+        });
+
+        var profile = state.get('profile');
+        var cursor = state.cursorFromObject(profile);
+        cursor.update('name', 'john');
+        assert.equal(state.get('profile.name'), 'john');
     });
 });
 
@@ -484,6 +497,32 @@ describe('util function', function() {
     });
 });
 
+describe('get function', function() {
+  it('should get _state', function () {
+      var state = new State();
+      state.load({
+          profile: {
+              name: "jack",
+              age: 10
+          }
+      });
+      assert.equal(state.get().profile.name, 'jack');
+      assert.equal(state.get().profile.age, 10);
+  });
+
+  it('should get by path', function () {
+      var state = new State();
+      state.load({
+          profile: {
+              name: "jack",
+              age: 10
+          }
+      });
+      assert.equal(state.get('profile.name'), 'jack');
+      assert.equal(state.get('profile.age'), 10);
+  });
+});
+
 describe('inner function', function () {
     var keyPathsCall = State.INNER_FUNC.keyPathsCall;
 
@@ -534,4 +573,40 @@ describe('time machine', function () {
         assert.notEqual(states[1], states[0]);
         assert.equal(states[1].profile.parent.mother.name, 'sony');
     });
+});
+
+describe('time machine 2', function () {
+  var state = new State();
+  state.load({
+    name: 'jack',
+    age: 19,
+    profile: {
+      father: 'john',
+      mother: 'nina'
+    }
+  });
+
+  state.snapshot();
+
+  state.cursor('name').update('carl');
+  state.snapshot(); // single change
+
+  state.cursor('name').update('daniel');
+  state.cursor('profile.father').update('zoe');
+  state.snapshot(); // cascade change
+
+  state.undo(); // undo
+  assert.equal(state.get('name'), 'carl');
+  assert.equal(state.get('profile.father'), 'john');
+
+  state.redo(); // redo
+  assert.equal(state.get('name'), 'daniel');
+  assert.equal(state.get('profile.father'), 'zoe');
+
+  state.undo();
+  state.undo();
+  assert.equal(state.get('name'), 'jack');
+
+
+
 });
