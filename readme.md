@@ -75,9 +75,21 @@ path可以是字符串或数据。
 
 ```
 var state = new State();
-state.load({name: 'jack'});
-assert.equal(state.cursor('name'), 'jack');
+state.load({name: 'jack'}); // 通过load加载
+assert.equal(state.get('name'), 'jack'); // 通过get获取
 ```
+
+#### update(path, value)
+
+更新path路径上的值为value
+
+```
+var state = new State();
+state.load({name: 'jack'});
+state.update('name', 'john'); // 修改为john了
+assert.equal(state.get('name'), 'john'); 
+```
+
 
 #### toJS()
 
