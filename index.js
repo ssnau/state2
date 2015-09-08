@@ -99,9 +99,10 @@ State.prototype.get = function (path) {
   if (!path) return this._state;
   return this.cursor(path)();
 }
-State.prototype.update = function (path, value) {
+State.prototype.set = function (path, value) {
   return this.cursor(path).update(value);
-}
+};
+State.prototype.update = State.prototype.set;
 
 State.prototype.cursor = function (path, errorplaceholder) {
   if (!path) path = [];

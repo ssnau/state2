@@ -534,7 +534,7 @@ describe('updatae function', function() {
       });
       state.update('profile.name', 'john');
       assert.equal(state.get().profile.name, 'john');
-      state.update('profile.age', 15);
+      state.set('profile.age', 15);
       assert.equal(state.get().profile.age, 15);
   });
 
